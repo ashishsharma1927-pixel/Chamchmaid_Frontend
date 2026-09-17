@@ -7,6 +7,7 @@ import { Colors } from '../../theme';
 import client from '../../api/client';
 import { safeBack } from '../../utils/navigation';
 import { API_URL } from '../../config';
+import { EncryptedMediaImage } from '../../components/EncryptedMediaImage';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 48) / 2;
@@ -23,7 +24,7 @@ const ProfilePostItem = ({ item, index, profile }: { item: any, index: number, p
     return (
         <View style={[styles.postCardWrapper, index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }]}>
             <TouchableOpacity style={styles.postCard}>
-                <Image source={{ uri: getImageUrl(item.image) }} style={styles.postImage} />
+                <EncryptedMediaImage uri={getImageUrl(item.image)} style={styles.postImage} resizeMode="cover" />
                 <View style={styles.postOverlay}>
                     <Text style={styles.postTitle} numberOfLines={1}>{item.title}</Text>
                     <View style={styles.postMeta}>
@@ -32,7 +33,7 @@ const ProfilePostItem = ({ item, index, profile }: { item: any, index: number, p
                             <Text style={styles.postTime}>2h ago</Text>
                         </View>
                         <View style={styles.postLikes}>
-                            <Feather name="heart" size={12} color="#ef4444" style={{ fill: '#ef4444' }} />
+                            <Feather name="heart" size={12} color="#ef4444" />
                             <Text style={styles.postLikesCount}>{item.likes_count || 0}</Text>
                         </View>
                     </View>

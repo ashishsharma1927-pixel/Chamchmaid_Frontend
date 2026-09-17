@@ -28,9 +28,12 @@ export default function LoginScreen() {
                 password: password
             });
 
-            const { access, refresh } = response.data;
+            const { access, refresh, media_key } = response.data;
             await setItemAsync('access_token', access);
             await setItemAsync('refresh_token', refresh);
+            if (media_key) {
+                await setItemAsync('media_encryption_key', media_key);
+            }
             
             // E2E Encryption: Ensure we have a keypair and upload the public key
             try {

@@ -8,6 +8,7 @@ import { Colors } from '../../theme';
 import client from '../../api/client';
 import { safeBack } from '../../utils/navigation';
 import { API_URL } from '../../config';
+import { EncryptedMediaImage } from '../../components/EncryptedMediaImage';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 48) / 2; // 24px padding on each side, gap of 16
@@ -23,9 +24,8 @@ const getImageUrl = (url: string | null | undefined, fallback?: string) => {
 
 const collections = [
     { id: '1', title: 'Travel', items: 24, icon: 'map', image: 'https://images.unsplash.com/photo-1506744626753-1fa44df31c7f?w=400&q=80' },
-    { id: '2', title: 'Work', items: 18, icon: 'briefcase', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80' },
-    { id: '3', title: 'Nature', items: 32, icon: 'feather', image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80' },
-    { id: '4', title: 'Food', items: 12, icon: 'coffee', image: 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=400&q=80' },
+    { id: '2', title: 'Architecture', items: 12, icon: 'home', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=80' },
+    { id: '3', title: 'Life', items: 48, icon: 'heart', image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80' },
 ];
 
 const tabs = ['Posts', 'Saved', 'Liked'];
@@ -37,7 +37,7 @@ const ProfilePostItem = ({ item, index, profile, handleDelete }: { item: any, in
     return (
         <View style={[styles.postCardWrapper, index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }]}>
             <TouchableOpacity style={styles.postCard}>
-                <Image source={{ uri: getImageUrl(item.image) }} style={styles.postImage} />
+                <EncryptedMediaImage uri={getImageUrl(item.image)} style={styles.postImage} resizeMode="cover" />
                 <View style={styles.postOverlay}>
                     <Text style={styles.postTitle} numberOfLines={1}>{item.title}</Text>
                     <View style={styles.postMeta}>
@@ -46,7 +46,7 @@ const ProfilePostItem = ({ item, index, profile, handleDelete }: { item: any, in
                             <Text style={styles.postTime}>2h ago</Text>
                         </View>
                         <View style={styles.postLikes}>
-                            <Feather name="heart" size={12} color="#ef4444" style={{ fill: '#ef4444' }} />
+                            <Feather name="heart" size={12} color="#ef4444" />
                             <Text style={styles.postLikesCount}>{item.likes_count || 124}</Text>
                         </View>
                     </View>
@@ -430,6 +430,10 @@ export default function ProfileScreen() {
                 columnWrapperStyle={{ paddingHorizontal: 24 }}
                 contentContainerStyle={styles.postsGrid}
                 showsVerticalScrollIndicator={false}
+                initialNumToRender={6}
+                maxToRenderPerBatch={8}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
                 onEndReached={fetchMorePosts}
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={Colors.light.primary} style={{ marginVertical: 20 }} /> : null}

@@ -10,8 +10,17 @@ import * as SecureStore from '../../utils/storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { BlurView } from 'expo-blur';
 import { API_URL } from '../../config';
+import { EncryptedMediaImage } from '../../components/EncryptedMediaImage';
 
 const { width } = Dimensions.get('window');
+
+const getImageUrl = (url: string | null | undefined, fallback?: string) => {
+    if (!url) return fallback || '';
+    if (url.startsWith('http') || url.startsWith('file:') || url.startsWith('blob:') || url.startsWith('data:')) return url;
+    const base = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${base}${path}`;
+};
 
 const PostItem = ({ item, index, toggleLike, handleDelete }: { item: any, index: number, toggleLike: (id: number, index: number) => void, handleDelete: (id: number) => void }) => {
     const [lastTap, setLastTap] = useState<number | null>(null);
@@ -121,7 +130,7 @@ const PostItem = ({ item, index, toggleLike, handleDelete }: { item: any, index:
         <View style={styles.card}>
             <TouchableWithoutFeedback onPress={handleTap}>
                 <View style={styles.imageContainer}>
-                    <Image source={{ uri: item.image }} style={styles.postImage} />
+                    <EncryptedMediaImage uri={getImageUrl(item.image)} style={styles.postImage} resizeMode="cover" />
                     
                     {/* Advanced Animated Heart */}
                     <Animated.View style={[
@@ -288,8 +297,8 @@ const PostItem = ({ item, index, toggleLike, handleDelete }: { item: any, index:
                         </TouchableOpacity>
                     </View>
 
-                    <Image 
-                        source={{ uri: item.image }} 
+                    <EncryptedMediaImage 
+                        uri={getImageUrl(item.image)} 
                         style={styles.fullScreenImage} 
                         resizeMode="contain" 
                     />
@@ -477,6 +486,11 @@ export default function DashboardScreen() {
                 onEndReachedThreshold={0.5}
                 refreshing={refreshing}
                 onRefresh={onRefresh}
+                initialNumToRender={6}
+                maxToRenderPerBatch={8}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
+                showsVerticalScrollIndicator={false}
                 ListFooterComponent={loading && !refreshing ? <ActivityIndicator size="large" color={Colors.light.primary} style={{margin: 20}} /> : null}
                 ListEmptyComponent={!loading ? <Text style={styles.emptyText}>No media uploaded yet.</Text> : null}
             />

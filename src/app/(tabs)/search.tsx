@@ -60,7 +60,7 @@ export default function SearchScreen() {
                 >
                     {isDefaultAvatar ? (
                         <View style={[styles.avatar, styles.fallbackAvatar]}>
-                            <Feather name="heart" size={20} color="#ef4444" style={{ fill: '#ef4444' }} />
+                            <Feather name="heart" size={20} color="#ef4444" />
                         </View>
                     ) : (
                         <Image source={{ uri: getImageUrl(item.avatar) }} style={styles.avatar} />

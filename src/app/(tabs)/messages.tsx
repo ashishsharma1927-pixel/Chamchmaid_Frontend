@@ -78,7 +78,7 @@ export default function MessagesScreen() {
             <View style={styles.requestCard}>
                 {isDefaultAvatar ? (
                     <View style={[styles.avatar, styles.fallbackAvatar]}>
-                        <Feather name="heart" size={24} color="#ef4444" style={{ fill: '#ef4444' }} />
+                        <Feather name="heart" size={24} color="#ef4444" />
                     </View>
                 ) : (
                     <Image source={{ uri: getImageUrl(item.avatar) }} style={styles.avatar} />
@@ -108,7 +108,7 @@ export default function MessagesScreen() {
             >
                 {isDefaultAvatar ? (
                     <View style={[styles.avatar, styles.fallbackAvatar]}>
-                        <Feather name="heart" size={24} color="#ef4444" style={{ fill: '#ef4444' }} />
+                        <Feather name="heart" size={24} color="#ef4444" />
                     </View>
                 ) : (
                     <Image source={{ uri: getImageUrl(item.avatar) }} style={styles.avatar} />
