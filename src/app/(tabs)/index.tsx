@@ -394,20 +394,37 @@ export default function DashboardScreen() {
                 const token = await SecureStore.getItemAsync('access_token');
                 
                 if (Platform.OS === 'web') {
-                    const formData = new FormData();
-                    if (asset.file) {
-                        formData.append('image', asset.file);
+                    let fileToUpload: any = (asset as any).file;
+                    if (!fileToUpload && asset.uri) {
+                        try {
+                            const blobRes = await fetch(asset.uri);
+                            const blob = await blobRes.blob();
+                            fileToUpload = new File([blob], asset.fileName || 'upload.jpg', {
+                                type: asset.mimeType || blob.type || 'image/jpeg'
+                            });
+                        } catch (e) {
+                            console.warn('Failed to convert URI to blob:', e);
+                        }
                     }
-                    formData.append('title', 'My New Post'); // Default title
-                    
-                    await client.post('/api/media/', formData, {
+
+                    const formData = new FormData();
+                    if (fileToUpload) {
+                        formData.append('image', fileToUpload);
+                    }
+                    formData.append('title', 'My New Post');
+
+                    const uploadRes = await fetch(`${API_URL}/api/media/`, {
+                        method: 'POST',
                         headers: {
-                            'Content-Type': 'multipart/form-data',
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                         },
-                        transformRequest: (data, headers) => {
-                            return formData; // Prevents Axios from serializing FormData to JSON
-                        },
+                        body: formData
                     });
+
+                    if (!uploadRes.ok) {
+                        const errData = await uploadRes.json().catch(() => ({}));
+                        throw new Error(errData.error || `Upload failed with status ${uploadRes.status}`);
+                    }
                 } else {
                     // Robust native mobile upload bypassing React Native's faulty network layer
                     const uploadResult = await FileSystem.uploadAsync(`${API_URL}/api/media/`, asset.uri, {

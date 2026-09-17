@@ -46,9 +46,11 @@ const ProfilePostItem = ({ item, index, profile }: { item: any, index: number, p
 export default function PublicProfileScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
+    const targetId = (Array.isArray(id) ? id[0] : id) || '';
+
     const [profile, setProfile] = useState<any>(null);
     const [posts, setPosts] = useState<any[]>([]);
-    const [nextUrl, setNextUrl] = useState<string | null>(`/api/media/?user_id=${id}`);
+    const [nextUrl, setNextUrl] = useState<string | null>(targetId ? `/api/media/?user_id=${targetId}` : null);
     const [loadingMore, setLoadingMore] = useState(false);
     const [loading, setLoading] = useState(true);
     const [showDisconnectModal, setShowDisconnectModal] = useState(false);
@@ -56,19 +58,24 @@ export default function PublicProfileScreen() {
 
     const [activeTab, setActiveTab] = useState<'posts'|'connections'>('posts');
     const [connections, setConnections] = useState<any[]>([]);
-    const [nextConnectionsUrl, setNextConnectionsUrl] = useState<string | null>(`/chat/connections/${id}/`);
+    const [nextConnectionsUrl, setNextConnectionsUrl] = useState<string | null>(targetId ? `/chat/connections/${targetId}/` : null);
     const [loadingMoreConnections, setLoadingMoreConnections] = useState(false);
 
     useEffect(() => {
-        loadData();
-    }, [id]);
+        if (!targetId || targetId === 'undefined') return;
+        setNextUrl(`/api/media/?user_id=${targetId}`);
+        setNextConnectionsUrl(`/chat/connections/${targetId}/`);
+        loadData(targetId);
+    }, [targetId]);
 
-    const loadData = async () => {
+    const loadData = async (uid: string) => {
+        if (!uid || uid === 'undefined') return;
+        setLoading(true);
         try {
             const results = await Promise.allSettled([
-                client.get(`/api/profile/${id}/`),
-                client.get(`/api/media/?user_id=${id}`),
-                client.get(`/chat/connections/${id}/`)
+                client.get(`/api/profile/${uid}/`),
+                client.get(`/api/media/?user_id=${uid}`),
+                client.get(`/chat/connections/${uid}/`)
             ]);
             const [profileRes, postsRes, connectionsRes] = results;
             if (profileRes.status === 'fulfilled') {
@@ -126,12 +133,12 @@ export default function PublicProfileScreen() {
     };
 
     const handleDisconnect = async () => {
-        if (disconnecting) return;
+        if (disconnecting || !targetId) return;
         setDisconnecting(true);
         try {
-            await client.post(`/chat/disconnect/${id}/`);
+            await client.post(`/chat/disconnect/${targetId}/`);
             // Refresh profile data to reflect un-friended state
-            loadData();
+            loadData(targetId);
         } catch (error) {
             console.error('Failed to disconnect', error);
         } finally {
@@ -139,6 +146,14 @@ export default function PublicProfileScreen() {
             setShowDisconnectModal(false);
         }
     };
+
+    const displayName = profile?.name || 
+        `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 
+        profile?.username || 
+        (profile?.email ? profile.email.split('@')[0] : (profile?.phone_number || `User ${targetId}`));
+    const displayHandle = profile?.username || (profile?.email ? profile.email.split('@')[0] : `user${targetId}`);
+    const defaultAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'User')}&background=random`;
+    const avatarUri = getImageUrl(profile?.avatar || profile?.profile_image, defaultAvatarUrl);
 
     const renderHeader = () => (
         <View style={styles.headerContainer}>
@@ -167,7 +182,7 @@ export default function PublicProfileScreen() {
                 <View style={styles.profileRow}>
                     <View style={styles.avatarContainer}>
                         <Image 
-                            source={{ uri: getImageUrl(profile?.profile_image, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&q=80') }} 
+                            source={{ uri: avatarUri }} 
                             style={styles.avatar} 
                         />
                         <View style={styles.verifiedBadge}>
@@ -177,10 +192,8 @@ export default function PublicProfileScreen() {
                 </View>
 
                 <View style={styles.nameContainer}>
-                    <Text style={styles.name}>
-                        {profile?.first_name || profile?.username || 'User'} {profile?.last_name || ''}
-                    </Text>
-                    <Text style={styles.handle}>@{profile?.username || 'user'}</Text>
+                    <Text style={styles.name}>{displayName}</Text>
+                    <Text style={styles.handle}>@{displayHandle}</Text>
                 </View>
 
                 {profile?.bio ? (
@@ -236,7 +249,7 @@ export default function PublicProfileScreen() {
                 <View style={styles.actionButtonsContainer}>
                     <TouchableOpacity 
                         style={[styles.actionBtn, { backgroundColor: Colors.light.primary, flex: 1 }]} 
-                        onPress={() => router.push(`/chat/${id}`)}
+                        onPress={() => router.push(`/chat/${targetId}`)}
                     >
                         <Feather name="message-circle" size={16} color="#fff" />
                         <Text style={[styles.actionBtnText, { color: '#fff' }]}>Message</Text>
