@@ -65,16 +65,25 @@ export default function PublicProfileScreen() {
 
     const loadData = async () => {
         try {
-            const [profileRes, postsRes, connectionsRes] = await Promise.all([
+            const results = await Promise.allSettled([
                 client.get(`/api/profile/${id}/`),
                 client.get(`/api/media/?user_id=${id}`),
                 client.get(`/chat/connections/${id}/`)
             ]);
-            setProfile(profileRes.data);
-            setPosts(postsRes.data.results || []);
-            setNextUrl(postsRes.data.next);
-            setConnections(connectionsRes.data.connections || []);
-            setNextConnectionsUrl(connectionsRes.data.next);
+            const [profileRes, postsRes, connectionsRes] = results;
+            if (profileRes.status === 'fulfilled') {
+                setProfile(profileRes.value.data);
+            } else {
+                console.error('Failed to load user profile details:', profileRes.reason);
+            }
+            if (postsRes.status === 'fulfilled') {
+                setPosts(postsRes.value.data.results || []);
+                setNextUrl(postsRes.value.data.next);
+            }
+            if (connectionsRes.status === 'fulfilled') {
+                setConnections(connectionsRes.value.data.connections || []);
+                setNextConnectionsUrl(connectionsRes.value.data.next);
+            }
         } catch (error) {
             console.error('Failed to load profile', error);
         } finally {
