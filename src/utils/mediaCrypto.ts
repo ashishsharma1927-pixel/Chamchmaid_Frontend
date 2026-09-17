@@ -78,7 +78,7 @@ export async function setMediaKey(keyB64: string) {
  */
 export function isEncryptedMediaUrl(url: string | null | undefined): boolean {
     if (!url) return false;
-    return url.includes('.enc') || url.includes('/chamchmaid/media_posts/');
+    return url.includes('.enc');
 }
 
 /**
@@ -103,7 +103,10 @@ export async function getOrDecryptMedia(url: string): Promise<string> {
             // In web browser environment, decrypt directly in memory to Blob URL
             if (Platform.OS === 'web') {
                 const res = await fetch(url);
-                if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+                if (!res.ok) {
+                    console.warn(`[mediaCrypto] HTTP ${res.status} fetching media: ${url}`);
+                    return url;
+                }
                 const arrayBuffer = await res.arrayBuffer();
                 const rawEncryptedBytes = new Uint8Array(arrayBuffer);
                 if (rawEncryptedBytes.length < 24 + 16) {
