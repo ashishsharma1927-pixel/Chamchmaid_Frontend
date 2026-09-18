@@ -4,8 +4,9 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../theme';
 import client from '../api/client';
 import * as SecureStore from 'expo-secure-store';
-import { safeBack } from '../utils/navigation';
+import { safeBack, resetToApp } from '../utils/navigation';
 import { StatusBar } from 'expo-status-bar';
+import ThemeBackground from '../components/ThemeBackground';
 
 export default function VerifyOTPScreen() {
     const router = useRouter();
@@ -36,7 +37,7 @@ export default function VerifyOTPScreen() {
             }
             
             Alert.alert('Success', 'Account verified successfully!', [
-                { text: 'Continue', onPress: () => router.replace('/(tabs)') }
+                { text: 'Continue', onPress: () => resetToApp() }
             ]);
         } catch (error: any) {
             const errMsg = error.response?.data?.error || 'Verification failed. Invalid OTP.';
@@ -60,15 +61,16 @@ export default function VerifyOTPScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar style="dark" />
+        <ThemeBackground>
+            <SafeAreaView style={styles.container}>
+                <StatusBar style="light" />
             
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => safeBack()} style={styles.backButton}>
                     <Text style={styles.backButtonText}>←</Text>
                 </TouchableOpacity>
                 <Text style={styles.title}>Verify Account</Text>
-                <Text style={styles.subtitle}>We've sent a 6-digit verification code to your email/phone.</Text>
+                <Text style={styles.subtitle}>We've sent a 6-digit verification code to {identifier || 'your email'}.</Text>
             </View>
 
             <View style={styles.form}>
@@ -77,7 +79,7 @@ export default function VerifyOTPScreen() {
                     <TextInput 
                         style={styles.input}
                         placeholder="Enter 6-digit code"
-                        placeholderTextColor={Colors.light.textMuted}
+                        placeholderTextColor={Colors.dark.textMuted}
                         value={otp}
                         onChangeText={setOtp}
                         keyboardType="number-pad"
@@ -101,21 +103,21 @@ export default function VerifyOTPScreen() {
                     <Text style={styles.footerText}>Didn't receive the code? </Text>
                     <TouchableOpacity onPress={handleResend} disabled={resendLoading}>
                         {resendLoading ? (
-                            <ActivityIndicator size="small" color={Colors.light.primary} />
+                            <ActivityIndicator size="small" color={Colors.dark.primary} />
                         ) : (
                             <Text style={styles.footerLink}>Resend OTP</Text>
                         )}
                     </TouchableOpacity>
                 </View>
             </View>
-        </SafeAreaView>
+            </SafeAreaView>
+        </ThemeBackground>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
     },
     header: {
         paddingHorizontal: 24,
@@ -126,18 +128,18 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     backButtonText: {
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontSize: 24,
     },
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 12,
     },
     subtitle: {
         fontSize: 16,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         lineHeight: 24,
     },
     form: {
@@ -147,24 +149,24 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     label: {
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         marginBottom: 8,
         fontSize: 14,
     },
     input: {
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderWidth: 1,
-        borderColor: Colors.light.border,
+        borderColor: Colors.dark.border,
         borderRadius: 12,
         padding: 16,
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontSize: 20,
         textAlign: 'center',
         letterSpacing: 8,
         fontWeight: 'bold',
     },
     verifyButton: {
-        backgroundColor: Colors.light.primary,
+        backgroundColor: Colors.dark.primary,
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
@@ -180,10 +182,10 @@ const styles = StyleSheet.create({
         marginTop: 40,
     },
     footerText: {
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
     footerLink: {
-        color: Colors.light.primary,
+        color: Colors.dark.primary,
         fontWeight: 'bold',
     }
 });

@@ -6,8 +6,9 @@ import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { Colors } from '../theme';
 import client from '../api/client';
 import * as SecureStore from '../utils/storage';
-import { safeBack } from '../utils/navigation';
+import { safeBack, resetToAuth } from '../utils/navigation';
 import { API_URL } from '../config';
+import ThemeBackground from '../components/ThemeBackground';
 
 const getImageUrl = (url: string) => {
     if (!url) return null;
@@ -72,8 +73,8 @@ export default function SettingsScreen() {
             setIsPrivate(response.data.is_private || false);
             setThemePref(response.data.theme_preference || 'system');
         } catch (error) {
-            console.error('Failed to fetch profile', error);
-            Alert.alert('Error', 'Failed to load settings.');
+            console.warn('Failed to fetch profile', error);
+            Alert.alert('Error', 'Failed to load settings. Please check your connection.');
         } finally {
             setLoading(false);
         }
@@ -92,7 +93,7 @@ export default function SettingsScreen() {
             }
             if (field === 'theme_preference') setThemePref(value);
         } catch (error) {
-            console.error(`Failed to update ${field}`, error);
+            console.warn(`Failed to update ${field}`, error);
             Alert.alert('Error', 'Failed to save preference. Please try again.');
         } finally {
             setUpdating(false);
@@ -129,11 +130,12 @@ export default function SettingsScreen() {
                 await client.post('/api/logout/', { refresh: refreshToken });
             }
         } catch (e) {
-            console.error("Logout API failed", e);
+            console.warn("Logout API failed", e);
+        } finally {
+            await SecureStore.deleteItemAsync('access_token');
+            await SecureStore.deleteItemAsync('refresh_token');
+            resetToAuth();
         }
-        await SecureStore.deleteItemAsync('access_token');
-        await SecureStore.deleteItemAsync('refresh_token');
-        router.replace('/login');
     };
 
     const handleLogout = () => {
@@ -142,9 +144,9 @@ export default function SettingsScreen() {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
-            </SafeAreaView>
+            <ThemeBackground style={styles.centerContainer}>
+                <ActivityIndicator size="large" color={Colors.dark.primary} />
+            </ThemeBackground>
         );
     }
 
@@ -190,11 +192,12 @@ export default function SettingsScreen() {
     );
 
     return (
+        <ThemeBackground>
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <StatusBar style="dark" />
+                <StatusBar style="light" />
                 <TouchableOpacity style={styles.backBtn} onPress={() => safeBack('/(tabs)/profile')}>
-                    <Feather name="chevron-left" size={24} color={Colors.light.text} />
+                    <Feather name="chevron-left" size={24} color={Colors.dark.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Account Settings</Text>
                 <View style={{ width: 40 }} />
@@ -245,7 +248,7 @@ export default function SettingsScreen() {
                             value={isPrivate}
                             onValueChange={handleTogglePrivacy}
                             disabled={updating}
-                            trackColor={{ false: Colors.light.border, true: Colors.light.primary }}
+                            trackColor={{ false: Colors.dark.border, true: Colors.dark.primary }}
                             thumbColor={'#fff'}
                         />
                     </View>
@@ -287,7 +290,7 @@ export default function SettingsScreen() {
                         <Text style={styles.activityTime}>Just now</Text>
                     </View>
                     <View style={styles.activityItem}>
-                        <View style={[styles.activityDot, { backgroundColor: Colors.light.primary }]} />
+                        <View style={[styles.activityDot, { backgroundColor: Colors.dark.primary }]} />
                         <Text style={styles.activityText}>Profile picture updated</Text>
                         <Text style={styles.activityTime}>2h ago</Text>
                     </View>
@@ -324,7 +327,7 @@ export default function SettingsScreen() {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalIconBox}>
-                            <Feather name="log-out" size={24} color={Colors.light.error} />
+                            <Feather name="log-out" size={24} color={Colors.dark.error} />
                         </View>
                         <Text style={styles.modalTitle}>Log Out?</Text>
                         <Text style={styles.modalMessage}>Are you sure you want to log out of your account?</Text>
@@ -347,6 +350,7 @@ export default function SettingsScreen() {
                 </View>
             </Modal>
         </SafeAreaView>
+        </ThemeBackground>
     );
 }
 
@@ -355,11 +359,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f8fafc',
     },
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
     },
     header: {
         flexDirection: 'row',
@@ -368,9 +370,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 16,
         paddingBottom: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
     },
     backBtn: {
         width: 40,
@@ -378,11 +377,12 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.1)',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     content: {
         flex: 1,
@@ -391,11 +391,11 @@ const styles = StyleSheet.create({
     
     // Completion Card Styles
     completionCard: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         padding: 20,
         marginBottom: 24,
-        boxShadow: `0px 4px 12px ${Colors.light.primary}0D`,
+        boxShadow: `0px 4px 12px ${Colors.dark.primary}0D`,
         elevation: 2,
     },
     completionHeader: {
@@ -407,12 +407,12 @@ const styles = StyleSheet.create({
     welcomeTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 4,
     },
     welcomeSubtitle: {
         fontSize: 14,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
     avatarWrapper: {
         position: 'relative',
@@ -428,12 +428,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: -6,
         right: -6,
-        backgroundColor: Colors.light.primary,
+        backgroundColor: Colors.dark.primary,
         borderRadius: 10,
         paddingHorizontal: 6,
         paddingVertical: 2,
         borderWidth: 2,
-        borderColor: '#fff',
+        borderColor: Colors.dark.surface,
     },
     completionBadgeText: {
         fontSize: 10,
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     completeProfileBtnText: {
-        color: Colors.light.primary,
+        color: Colors.dark.primary,
         fontWeight: '600',
         fontSize: 14,
     },
@@ -459,11 +459,11 @@ const styles = StyleSheet.create({
     },
     checkText: {
         fontSize: 14,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         marginLeft: 12,
     },
     checkTextActive: {
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontWeight: '500',
     },
 
@@ -471,12 +471,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 15,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 12,
         marginLeft: 4,
     },
     settingsGroup: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         paddingHorizontal: 16,
         marginBottom: 24,
@@ -521,23 +521,23 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 15,
         fontWeight: '500',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     settingSubLabel: {
         fontSize: 12,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         marginTop: 2,
     },
     divider: {
         height: 1,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: Colors.dark.border,
         marginLeft: 44,
     },
 
     // Theme Selector
     themeSelector: {
         flexDirection: 'row',
-        backgroundColor: '#f1f5f9',
+        backgroundColor: Colors.dark.background,
         borderRadius: 8,
         padding: 4,
     },
@@ -547,23 +547,23 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     themeBtnActive: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.dark.surface,
         boxShadow: '0px 1px 2px #0000001A',
         elevation: 1,
     },
     themeBtnText: {
         fontSize: 13,
         fontWeight: '500',
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
     themeBtnTextActive: {
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontWeight: 'bold',
     },
 
     // Activity Feed
     activityGroup: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         padding: 16,
         marginBottom: 24,
@@ -582,16 +582,16 @@ const styles = StyleSheet.create({
     activityText: {
         flex: 1,
         fontSize: 14,
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     activityTime: {
         fontSize: 12,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
 
     // Logout
     logoutBtn: {
-        backgroundColor: '#fef2f2',
+        backgroundColor: '#451a1a', // Darker red background for dark mode fallback
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     logoutText: {
-        color: '#ef4444',
+        color: Colors.dark.error,
         fontWeight: 'bold',
         fontSize: 15,
         marginLeft: 8,
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     modalContent: {
         width: '85%',
         maxWidth: 400,
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         padding: 24,
         alignItems: 'center',
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: '#fee2e2',
+        backgroundColor: '#451a1a',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
@@ -636,12 +636,12 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 8,
     },
     modalMessage: {
         fontSize: 14,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         textAlign: 'center',
         marginBottom: 24,
         lineHeight: 20,
@@ -655,18 +655,18 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 12,
         borderRadius: 8,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: Colors.dark.background,
         alignItems: 'center',
     },
     modalCancelText: {
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontWeight: '600',
     },
     modalLogoutBtn: {
         flex: 1,
         paddingVertical: 12,
         borderRadius: 8,
-        backgroundColor: Colors.light.error,
+        backgroundColor: Colors.dark.error,
         alignItems: 'center',
     },
     modalLogoutText: {

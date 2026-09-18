@@ -11,6 +11,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { BlurView } from 'expo-blur';
 import { API_URL } from '../../config';
 import { EncryptedMediaImage } from '../../components/EncryptedMediaImage';
+import ThemeBackground from '../../components/ThemeBackground';
 
 const { width } = Dimensions.get('window');
 
@@ -27,7 +28,7 @@ const PostItem = ({ item, index, toggleLike, handleDelete }: { item: any, index:
     const [showMenu, setShowMenu] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showFullImage, setShowFullImage] = useState(false);
-    const tapTimeout = useRef<NodeJS.Timeout | null>(null);
+    const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         return () => {
@@ -197,7 +198,7 @@ const PostItem = ({ item, index, toggleLike, handleDelete }: { item: any, index:
                                 >
                                     <BlurView intensity={40} tint="dark" style={styles.actionBlur}>
                                         {item.is_liked ? (
-                                            <FontAwesome name="heart" size={16} color={Colors.light.error} />
+                                            <FontAwesome name="heart" size={16} color={Colors.dark.error} />
                                         ) : (
                                             <Feather name="heart" size={16} color="#fff" />
                                         )}
@@ -211,20 +212,32 @@ const PostItem = ({ item, index, toggleLike, handleDelete }: { item: any, index:
                 </View>
             </TouchableWithoutFeedback>
 
-            {showMenu && item.is_owner && (
-                <View style={styles.dropdownMenu}>
-                    <TouchableOpacity 
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                            setShowMenu(false);
-                            setShowDeleteModal(true);
-                        }}
-                    >
-                        <Feather name="trash-2" size={16} color={Colors.light.error} />
-                        <Text style={styles.dropdownText}>Delete Post</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
+            {/* Dropdown Menu via full-screen Modal so outside taps always dismiss it */}
+            <Modal
+                visible={showMenu && item.is_owner}
+                transparent={true}
+                animationType="none"
+                onRequestClose={() => setShowMenu(false)}
+            >
+                <TouchableOpacity
+                    style={styles.dropdownOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowMenu(false)}
+                >
+                    <View style={styles.dropdownMenu}>
+                        <TouchableOpacity 
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                                setShowMenu(false);
+                                setShowDeleteModal(true);
+                            }}
+                        >
+                            <Feather name="trash-2" size={16} color={Colors.dark.error} />
+                            <Text style={styles.dropdownText}>Delete Post</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
 
             {/* Custom Delete Confirmation Modal */}
             <Modal
@@ -236,7 +249,7 @@ const PostItem = ({ item, index, toggleLike, handleDelete }: { item: any, index:
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalIconBox}>
-                            <Feather name="trash-2" size={24} color={Colors.light.error} />
+                            <Feather name="trash-2" size={24} color={Colors.dark.error} />
                         </View>
                         <Text style={styles.modalTitle}>Delete Post?</Text>
                         <Text style={styles.modalMessage}>Are you sure you want to delete this post? This action cannot be undone.</Text>
@@ -476,7 +489,7 @@ export default function DashboardScreen() {
                 <Text style={styles.sectionTitle}>Your World, Here.</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/notifications')} style={styles.notificationBtn}>
-                <Feather name="bell" size={24} color={Colors.light.text} />
+                <Feather name="bell" size={24} color={Colors.dark.text} />
                 <View style={styles.notificationBadge} />
             </TouchableOpacity>
         </View>
@@ -487,8 +500,9 @@ export default function DashboardScreen() {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar style="dark" />
+        <ThemeBackground>
+            <SafeAreaView style={styles.container}>
+                <StatusBar style="light" />
             
             <FlatList
                 key="2-columns"
@@ -508,17 +522,17 @@ export default function DashboardScreen() {
                 windowSize={5}
                 removeClippedSubviews={Platform.OS === 'android'}
                 showsVerticalScrollIndicator={false}
-                ListFooterComponent={loading && !refreshing ? <ActivityIndicator size="large" color={Colors.light.primary} style={{margin: 20}} /> : null}
+                ListFooterComponent={loading && !refreshing ? <ActivityIndicator size="large" color={Colors.dark.primary} style={{margin: 20}} /> : null}
                 ListEmptyComponent={!loading ? <Text style={styles.emptyText}>No media uploaded yet.</Text> : null}
             />
         </SafeAreaView>
+        </ThemeBackground>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
     },
     listContent: {
         paddingBottom: 80,
@@ -544,12 +558,12 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: '#ef4444',
         borderWidth: 1.5,
-        borderColor: Colors.light.background,
+        borderColor: Colors.dark.background,
     },
     sectionTitle: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     headerTitleContainer: {
         flexDirection: 'row',
@@ -585,7 +599,7 @@ const styles = StyleSheet.create({
         position: 'relative',
         borderRadius: 20,
         overflow: 'hidden',
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
     },
     postImage: {
         width: '100%',
@@ -726,11 +740,14 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },
+    dropdownOverlay: {
+        flex: 1,
+    },
     dropdownMenu: {
         position: 'absolute',
-        top: 50,
+        top: 60,
         right: 16,
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 12,
         padding: 4,
         zIndex: 20,
@@ -745,7 +762,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     dropdownText: {
-        color: Colors.light.error,
+        color: Colors.dark.error,
         fontSize: 14,
         fontWeight: '600',
     },
@@ -758,7 +775,7 @@ const styles = StyleSheet.create({
     modalContent: {
         width: '85%',
         maxWidth: 400,
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         padding: 24,
         alignItems: 'center',
@@ -769,7 +786,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: '#fee2e2',
+        backgroundColor: '#451a1a',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
@@ -777,12 +794,12 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 8,
     },
     modalMessage: {
         fontSize: 14,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         textAlign: 'center',
         marginBottom: 24,
         lineHeight: 20,
@@ -796,51 +813,57 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 12,
         borderRadius: 8,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: Colors.dark.background,
         alignItems: 'center',
     },
     modalCancelText: {
-        color: Colors.light.text,
-        fontWeight: '600',
+        color: Colors.dark.text,
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     modalDeleteBtn: {
         flex: 1,
         paddingVertical: 12,
         borderRadius: 8,
-        backgroundColor: Colors.light.error,
+        backgroundColor: Colors.dark.error,
         alignItems: 'center',
     },
     modalDeleteText: {
         color: '#fff',
-        fontWeight: '600',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     fullScreenOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.95)',
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
         justifyContent: 'center',
+        alignItems: 'center',
+    },
+    fullScreenImage: {
+        width: '100%',
+        height: '100%',
     },
     fullScreenHeader: {
         position: 'absolute',
-        top: 0,
+        top: 50,
         left: 0,
         right: 0,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 50,
         paddingHorizontal: 20,
         zIndex: 10,
     },
     fullScreenAuthor: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: 8,
     },
     fullScreenAvatar: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        borderWidth: 1.5,
+        borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.4)',
     },
     fullScreenPlaceholderAvatar: {
@@ -850,41 +873,33 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.2)',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1.5,
+        borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.4)',
     },
     fullScreenAuthorName: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '700',
-        textShadowColor: 'rgba(0,0,0,0.8)',
+        fontWeight: 'bold',
+        textShadowColor: 'rgba(0,0,0,0.5)',
         textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 4,
-    },
-    fullScreenFooter: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        paddingBottom: 40,
-        paddingHorizontal: 20,
-        zIndex: 10,
-    },
-    fullScreenImage: {
-        width: '100%',
-        height: '100%',
+        textShadowRadius: 3,
     },
     closeFullImage: {
         padding: 8,
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: 'rgba(0,0,0,0.5)',
         borderRadius: 20,
     },
+    fullScreenFooter: {
+        position: 'absolute',
+        bottom: 50,
+        left: 20,
+        right: 20,
+        zIndex: 10,
+    },
     emptyText: {
-        color: Colors.light.textMuted,
         textAlign: 'center',
-        marginTop: 40,
-        color: Colors.light.textMuted,
-        textAlign: 'center',
-        marginTop: 40,
+        color: Colors.dark.textMuted,
+        marginTop: 50,
+        fontSize: 16,
     }
 });

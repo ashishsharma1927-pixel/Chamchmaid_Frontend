@@ -10,6 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from '../utils/storage';
 import { API_URL } from '../config';
+import ThemeBackground from '../components/ThemeBackground';
 
 export default function EditProfileScreen() {
     const router = useRouter();
@@ -151,10 +152,12 @@ export default function EditProfileScreen() {
                     if (newCoverImage?.file) {
                         formData.append('cover_image', newCoverImage.file);
                     }
-                    await client.put('/api/profile/', formData, {
-                        headers: { 'Content-Type': 'multipart/form-data' },
-                        transformRequest: (data) => formData
-                    });
+                    try {
+                        await client.put('/api/profile/', formData);
+                    } catch (uploadError) {
+                        console.error('Image upload failed', uploadError);
+                        throw uploadError;
+                    }
                 } else {
                     if (newProfileImage) {
                         const uploadResult = await FileSystem.uploadAsync(`${API_URL}/api/profile/`, newProfileImage.uri, {
@@ -208,20 +211,21 @@ export default function EditProfileScreen() {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
-            </SafeAreaView>
+            <ThemeBackground style={styles.centerContainer}>
+                <ActivityIndicator size="large" color={Colors.dark.primary} />
+            </ThemeBackground>
         );
     }
 
     return (
+        <ThemeBackground>
         <SafeAreaView style={styles.container}>
-            <StatusBar style="dark" />
+            <StatusBar style="light" />
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backBtn} onPress={() => safeBack('/(tabs)/profile')}>
-                        <Feather name="chevron-left" size={24} color={Colors.light.text} />
+                        <Feather name="chevron-left" size={24} color={Colors.dark.text} />
                     </TouchableOpacity>
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.headerTitle}>Edit Profile</Text>
@@ -264,7 +268,7 @@ export default function EditProfileScreen() {
                     {/* Basic Info */}
                     <View style={styles.card}>
                         <View style={styles.inputGroup}>
-                            <Feather name="user" size={18} color={Colors.light.textMuted} style={styles.inputIcon} />
+                            <Feather name="user" size={18} color={Colors.dark.textMuted} style={styles.inputIcon} />
                             <View style={styles.inputWrapper}>
                                 <Text style={styles.inputLabel}>Full Name</Text>
                                 <TextInput 
@@ -281,7 +285,7 @@ export default function EditProfileScreen() {
                         <View style={styles.divider} />
 
                         <View style={styles.inputGroup}>
-                            <Feather name="at-sign" size={18} color={Colors.light.textMuted} style={styles.inputIcon} />
+                            <Feather name="at-sign" size={18} color={Colors.dark.textMuted} style={styles.inputIcon} />
                             <View style={styles.inputWrapper}>
                                 <Text style={styles.inputLabel}>Username</Text>
                                 <TextInput 
@@ -299,7 +303,7 @@ export default function EditProfileScreen() {
                         <View style={styles.divider} />
 
                         <View style={styles.inputGroup}>
-                            <Feather name="file-text" size={18} color={Colors.light.textMuted} style={styles.inputIcon} />
+                            <Feather name="file-text" size={18} color={Colors.dark.textMuted} style={styles.inputIcon} />
                             <View style={styles.inputWrapper}>
                                 <Text style={styles.inputLabel}>Bio</Text>
                                 <TextInput 
@@ -318,7 +322,7 @@ export default function EditProfileScreen() {
                     {/* Personal Details */}
                     <View style={styles.card}>
                         <View style={styles.inputGroup}>
-                            <Feather name="map-pin" size={18} color={Colors.light.textMuted} style={styles.inputIcon} />
+                            <Feather name="map-pin" size={18} color={Colors.dark.textMuted} style={styles.inputIcon} />
                             <View style={styles.inputWrapper}>
                                 <Text style={styles.inputLabel}>Location</Text>
                                 <TextInput 
@@ -333,7 +337,7 @@ export default function EditProfileScreen() {
                         <View style={styles.divider} />
 
                         <View style={styles.inputGroup}>
-                            <Feather name="briefcase" size={18} color={Colors.light.textMuted} style={styles.inputIcon} />
+                            <Feather name="briefcase" size={18} color={Colors.dark.textMuted} style={styles.inputIcon} />
                             <View style={styles.inputWrapper}>
                                 <Text style={styles.inputLabel}>Occupation</Text>
                                 <TextInput 
@@ -353,15 +357,15 @@ export default function EditProfileScreen() {
                     <View style={styles.card}>
                         <TouchableOpacity style={[styles.cardHeader, { justifyContent: 'space-between', marginBottom: 0 }]} onPress={() => router.push('/add-links')}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Feather name="link" size={18} color={Colors.light.textMuted} style={styles.inputIcon} />
+                                <Feather name="link" size={18} color={Colors.dark.textMuted} style={styles.inputIcon} />
                                 <View>
                                     <Text style={styles.cardTitle}>Add Links</Text>
                                     <Text style={styles.cardSubtitle}>Connect your other profiles</Text>
                                 </View>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ color: Colors.light.primary, fontSize: 12, fontWeight: '600', marginRight: 4 }}>Manage</Text>
-                                <Feather name="chevron-right" size={12} color={Colors.light.primary} />
+                                <Text style={{ color: Colors.dark.primary, fontSize: 12, fontWeight: '600', marginRight: 4 }}>Manage</Text>
+                                <Feather name="chevron-right" size={12} color={Colors.dark.primary} />
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -370,15 +374,15 @@ export default function EditProfileScreen() {
                     <View style={styles.card}>
                         <TouchableOpacity style={[styles.cardHeader, { justifyContent: 'space-between', marginBottom: 0 }]} onPress={() => router.push('/manage-collections')}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Feather name="grid" size={18} color={Colors.light.textMuted} style={styles.inputIcon} />
+                                <Feather name="grid" size={18} color={Colors.dark.textMuted} style={styles.inputIcon} />
                                 <View>
                                     <Text style={styles.cardTitle}>My Collections</Text>
                                     <Text style={styles.cardSubtitle}>Showcase what matters to you</Text>
                                 </View>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ color: Colors.light.primary, fontSize: 12, fontWeight: '600', marginRight: 4 }}>Manage</Text>
-                                <Feather name="chevron-right" size={12} color={Colors.light.primary} />
+                                <Text style={{ color: Colors.dark.primary, fontSize: 12, fontWeight: '600', marginRight: 4 }}>Manage</Text>
+                                <Feather name="chevron-right" size={12} color={Colors.dark.primary} />
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -395,6 +399,7 @@ export default function EditProfileScreen() {
                 )}
             </KeyboardAvoidingView>
         </SafeAreaView>
+        </ThemeBackground>
     );
 }
 
@@ -403,11 +408,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f8fafc',
     },
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
     },
     header: {
         flexDirection: 'row',
@@ -415,13 +418,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 16,
         justifyContent: 'space-between',
-        backgroundColor: '#fff',
     },
     backBtn: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: 'rgba(255,255,255,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -432,16 +434,16 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     headerSubtitle: {
         fontSize: 12,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         marginTop: 2,
     },
     helpText: {
         fontSize: 14,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         flex: 1,
     },
     toaster: {
@@ -469,7 +471,7 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
     saveBtn: {
-        backgroundColor: Colors.light.primary,
+        backgroundColor: Colors.dark.primary,
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
@@ -493,7 +495,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 120,
         borderRadius: 16,
-        backgroundColor: '#e2e8f0',
+        backgroundColor: Colors.dark.surface,
         overflow: 'hidden',
     },
     coverImage: {
@@ -520,24 +522,24 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         borderWidth: 4,
-        borderColor: '#f8fafc',
-        backgroundColor: '#fff',
+        borderColor: Colors.dark.background,
+        backgroundColor: Colors.dark.surface,
     },
     editPhotoBtn: {
         position: 'absolute',
         bottom: 0,
         right: 0,
-        backgroundColor: Colors.light.primary,
+        backgroundColor: Colors.dark.primary,
         width: 28,
         height: 28,
         borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#f8fafc',
+        borderColor: Colors.dark.background,
     },
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         padding: 16,
         marginBottom: 20,
@@ -558,19 +560,19 @@ const styles = StyleSheet.create({
     },
     inputLabel: {
         fontSize: 12,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         marginBottom: 4,
         fontWeight: '500',
     },
     textInput: {
         fontSize: 14,
-        color: Colors.light.text,
+        color: Colors.dark.text,
         paddingVertical: 4,
         fontWeight: '500',
     },
     bioInput: {
         fontSize: 14,
-        color: Colors.light.text,
+        color: Colors.dark.text,
         paddingVertical: 4,
         minHeight: 60,
         textAlignVertical: 'top',
@@ -578,18 +580,18 @@ const styles = StyleSheet.create({
     },
     charCount: {
         fontSize: 10,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         alignSelf: 'flex-end',
     },
     bioCharCount: {
         fontSize: 10,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         alignSelf: 'flex-end',
         marginTop: -10,
     },
     divider: {
         height: 1,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: Colors.dark.border,
         marginVertical: 12,
         marginLeft: 36,
     },
@@ -601,11 +603,11 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     cardSubtitle: {
         fontSize: 12,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
     socialGroup: {
         flexDirection: 'row',
@@ -625,13 +627,13 @@ const styles = StyleSheet.create({
     },
     socialLabel: {
         fontSize: 12,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         marginBottom: 2,
         fontWeight: '500',
     },
     socialInput: {
         fontSize: 14,
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontWeight: '500',
         paddingVertical: 2,
     },

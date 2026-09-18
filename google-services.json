@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "576648733398",
+    "project_id": "chamchmaid",
+    "storage_bucket": "chamchmaid.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576648733398:android:80dc0a4d9dc520befa5f77",
+        "android_client_info": {
+          "package_name": "com.chamchmaid.chamchmaid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsDZPtglIgvXyM6bYlLtUQEn3ERkga8Rk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

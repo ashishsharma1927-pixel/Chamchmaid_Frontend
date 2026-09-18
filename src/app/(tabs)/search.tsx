@@ -7,6 +7,7 @@ import { Feather } from '@expo/vector-icons';
 import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { API_URL } from '../../config';
+import ThemeBackground from '../../components/ThemeBackground';
 
 const getImageUrl = (url: string) => {
     if (!url) return 'https://ui-avatars.com/api/?name=User&background=random';
@@ -72,7 +73,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 {item.is_friend ? (
                     <TouchableOpacity 
-                        style={[styles.connectButton, { backgroundColor: Colors.light.primary }]}
+                        style={[styles.connectButton, { backgroundColor: Colors.dark.primary }]}
                         onPress={() => router.push(`/chat/${item.id}`)}
                     >
                         <Text style={styles.connectButtonText}>Message</Text>
@@ -93,16 +94,17 @@ export default function SearchScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar style="dark" />
+        <ThemeBackground>
+            <SafeAreaView style={styles.container}>
+                <StatusBar style="light" />
             <View style={styles.header}>
                 <Text style={styles.title}>Search</Text>
                 <View style={styles.searchBar}>
-                    <Feather name="search" size={20} color={Colors.light.textMuted} />
+                    <Feather name="search" size={20} color={Colors.dark.textMuted} />
                     <TextInput 
                         style={styles.searchInput}
                         placeholder="Search for people..."
-                        placeholderTextColor={Colors.light.textMuted}
+                        placeholderTextColor={Colors.dark.textMuted}
                         value={query}
                         onChangeText={handleSearch}
                     />
@@ -110,7 +112,7 @@ export default function SearchScreen() {
             </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 40 }} />
+                <ActivityIndicator size="large" color={Colors.dark.primary} style={{ marginTop: 40 }} />
             ) : (
                 <FlatList 
                     data={users}
@@ -127,13 +129,13 @@ export default function SearchScreen() {
                 />
             )}
         </SafeAreaView>
+        </ThemeBackground>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
     },
     header: {
         padding: 24,
@@ -141,15 +143,15 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 20,
     },
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderWidth: 1,
-        borderColor: Colors.light.border,
+        borderColor: Colors.dark.border,
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 12,
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontSize: 16,
     },
     list: {
@@ -167,7 +169,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         padding: 16,
         borderRadius: 12,
         marginBottom: 12,
@@ -176,7 +178,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     userName: {
-        color: Colors.light.text,
+        color: Colors.dark.text,
         fontSize: 16,
         fontWeight: '600',
         marginBottom: 4,
@@ -188,22 +190,22 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     fallbackAvatar: {
-        backgroundColor: '#fee2e2',
+        backgroundColor: '#451a1a', // Darker red background for dark mode fallback
         justifyContent: 'center',
         alignItems: 'center',
     },
     userSubtitle: {
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         fontSize: 13,
     },
     connectButton: {
-        backgroundColor: Colors.light.primary,
+        backgroundColor: Colors.dark.primary,
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 8,
     },
     connectButtonDisabled: {
-        backgroundColor: Colors.light.textMuted,
+        backgroundColor: Colors.dark.textMuted,
     },
     connectButtonText: {
         color: '#fff',
@@ -211,7 +213,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     emptyText: {
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         textAlign: 'center',
         marginTop: 40,
         fontSize: 16,

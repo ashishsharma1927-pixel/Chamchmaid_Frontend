@@ -1,86 +1,121 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView, ActivityIndicator, BackHandler } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import * as SecureStore from '../utils/storage';
-import { Colors, Typography } from '../theme';
+import { resetToApp } from '../utils/navigation';
+import { Colors } from '../theme';
 import { StatusBar } from 'expo-status-bar';
 
 import { cryptoUtils } from '../utils/crypto';
 import client from '../api/client';
+import ThemeBackground from '../components/ThemeBackground';
 
 export default function LandingScreen() {
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
 
+    // Hardware back press on landing screen should exit the app, never go into protected screens
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                BackHandler.exitApp();
+                return true;
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => subscription.remove();
+        }, [])
+    );
+
     useEffect(() => {
-        // Auto redirect if logged in
-        SecureStore.getItemAsync('access_token').then(async token => {
-            if (token) {
-                // E2E Encryption: Ensure keypair exists and is registered
-                try {
-                    const { publicKey } = await cryptoUtils.getOrGenerateKeyPair();
-                    await client.put('/api/profile/', { public_key: publicKey });
-                } catch (err) {
-                    console.warn('Failed to upload public key on startup', err);
+        // Auto redirect if logged in - keep user logged in until explicit logout
+        const checkAuth = async () => {
+            try {
+                let token = await SecureStore.getItemAsync('access_token');
+                const refreshToken = await SecureStore.getItemAsync('refresh_token');
+
+                if (!token && refreshToken) {
+                    try {
+                        const res = await client.post('/api/token/refresh/', { refresh: refreshToken });
+                        if (res.data?.access) {
+                            const newAccess: string = res.data.access;
+                            token = newAccess;
+                            await SecureStore.setItemAsync('access_token', newAccess);
+                        }
+                    } catch (e) {
+                        console.warn('Silent refresh failed on startup', e);
+                    }
                 }
-                router.replace('/(tabs)');
-            } else {
+
+                if (token) {
+                    // E2E Encryption: Ensure keypair exists and is registered
+                    try {
+                        const { publicKey } = await cryptoUtils.getOrGenerateKeyPair();
+                        await client.put('/api/profile/', { public_key: publicKey });
+                    } catch (err) {
+                        console.warn('Failed to upload public key on startup', err);
+                    }
+                    resetToApp();
+                } else {
+                    setIsChecking(false);
+                }
+            } catch (err) {
+                console.error('Error checking auth state on startup', err);
                 setIsChecking(false);
             }
-        });
+        };
+
+        checkAuth();
     }, []);
 
     if (isChecking) {
         return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+            <ThemeBackground style={{ justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color={Colors.dark.primary} />
-            </View>
+            </ThemeBackground>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar style="light" />
-            
-            {/* Background glowing effects can be simulated with absolute views */}
-            <View style={[styles.glowBlob, { top: -100, right: -100, backgroundColor: 'rgba(249, 27, 125, 0.2)' }]} />
-            <View style={[styles.glowBlob, { bottom: -100, left: -100, backgroundColor: 'rgba(105, 61, 245, 0.2)' }]} />
+        <ThemeBackground>
+            <SafeAreaView style={styles.container}>
+                <StatusBar style="light" />
+                
+                <View style={styles.content}>
+                    <View style={styles.logoContainer}>
+                        <Image 
+                            source={require('../../assets/images/logo.png')} // Replace with actual logo
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.title}>CHAMCHMAID</Text>
+                        <Text style={styles.subtitle}>Connect, share, and experience your community like never before.</Text>
+                    </View>
 
-            <View style={styles.content}>
-                <View style={styles.logoContainer}>
-                    <Image 
-                        source={require('../../assets/images/logo.png')} // Replace with actual logo
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
-                    <Text style={styles.title}>CHAMCHMAID</Text>
-                    <Text style={styles.subtitle}>Connect, share, and experience your community like never before.</Text>
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity 
+                            style={styles.primaryButton}
+                            onPress={() => router.push('/login')}
+                        >
+                            <Text style={styles.primaryButtonText}>Log In</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={styles.secondaryButton}
+                            onPress={() => router.push('/signup')}
+                        >
+                            <Text style={styles.secondaryButtonText}>Create an Account</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity 
-                        style={styles.primaryButton}
-                        onPress={() => router.push('/login')}
-                    >
-                        <Text style={styles.primaryButtonText}>Log In</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={styles.secondaryButton}
-                        onPress={() => router.push('/signup')}
-                    >
-                        <Text style={styles.secondaryButtonText}>Create an Account</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </SafeAreaView>
+            </SafeAreaView>
+        </ThemeBackground>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.dark.background,
     },
     content: {
         flex: 1,
@@ -142,12 +177,5 @@ const styles = StyleSheet.create({
         color: Colors.dark.text,
         fontSize: 16,
         fontWeight: '600',
-    },
-    glowBlob: {
-        position: 'absolute',
-        width: 300,
-        height: 300,
-        borderRadius: 150,
-        opacity: 0.5,
     }
 });

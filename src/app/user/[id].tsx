@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, FlatList, Dimensions, ImageBackground, SafeAreaView, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';

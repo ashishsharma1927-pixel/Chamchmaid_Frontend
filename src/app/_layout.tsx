@@ -18,9 +18,9 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AnimatedSplashOverlay />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark.background } }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="login" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
       </Stack>
     </ThemeProvider>
   );

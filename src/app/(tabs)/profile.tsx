@@ -6,9 +6,9 @@ import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { Colors } from '../../theme';
 import client from '../../api/client';
-import { safeBack } from '../../utils/navigation';
 import { API_URL } from '../../config';
 import { EncryptedMediaImage } from '../../components/EncryptedMediaImage';
+import ThemeBackground from '../../components/ThemeBackground';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 48) / 2; // 24px padding on each side, gap of 16
@@ -69,7 +69,7 @@ const ProfilePostItem = ({ item, index, profile, handleDelete }: { item: any, in
                             setShowDeleteModal(true);
                         }}
                     >
-                        <Feather name="trash-2" size={14} color={Colors.light.error} />
+                        <Feather name="trash-2" size={14} color={Colors.dark.error} />
                         <Text style={styles.dropdownText}>Delete</Text>
                     </TouchableOpacity>
                 </View>
@@ -84,7 +84,7 @@ const ProfilePostItem = ({ item, index, profile, handleDelete }: { item: any, in
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalIconBox}>
-                            <Feather name="trash-2" size={24} color={Colors.light.error} />
+                            <Feather name="trash-2" size={24} color={Colors.dark.error} />
                         </View>
                         <Text style={styles.modalTitle}>Delete Post?</Text>
                         <Text style={styles.modalMessage}>Are you sure you want to delete this post?</Text>
@@ -185,14 +185,12 @@ export default function ProfileScreen() {
             if (refreshToken) {
                 await client.post('/api/logout/', { refresh: refreshToken });
             }
-            await SecureStore.deleteItemAsync('access_token');
-            await SecureStore.deleteItemAsync('refresh_token');
-            router.replace('/login');
         } catch (error) {
             console.error('Logout failed', error);
+        } finally {
             await SecureStore.deleteItemAsync('access_token');
             await SecureStore.deleteItemAsync('refresh_token');
-            router.replace('/login');
+            resetToAuth();
         }
     };
 
@@ -219,7 +217,7 @@ export default function ProfileScreen() {
                         <View style={{ flex: 1 }} />
                         <View style={styles.rightButtons}>
                             <TouchableOpacity style={[styles.roundButton, { backgroundColor: 'rgba(0,0,0,0.1)' }]} onPress={() => router.push('/settings')}>
-                                <Feather name="settings" size={20} color={Colors.light.text} />
+                                <Feather name="settings" size={20} color={Colors.dark.text} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -240,11 +238,11 @@ export default function ProfileScreen() {
                     <View style={styles.actionButtonsContainer}>
                         <View style={styles.actionButtons}>
                             <TouchableOpacity style={styles.editButton} onPress={() => router.push('/edit-profile')}>
-                                <Feather name="edit-2" size={14} color={Colors.light.text} />
+                                <Feather name="edit-2" size={14} color={Colors.dark.text} />
                                 <Text style={styles.editButtonText}>Edit Profile</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.addUserButton}>
-                                <Feather name="user-plus" size={16} color={Colors.light.text} />
+                                <Feather name="user-plus" size={16} color={Colors.dark.text} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -264,20 +262,20 @@ export default function ProfileScreen() {
                 <View style={styles.detailsRow}>
                     {profile?.location ? (
                         <View style={styles.detailItem}>
-                            <Feather name="map-pin" size={12} color={Colors.light.textMuted} />
+                            <Feather name="map-pin" size={12} color={Colors.dark.textMuted} />
                             <Text style={styles.detailText}>{profile.location}</Text>
                         </View>
                     ) : null}
                     {profile?.occupation ? (
                         <View style={styles.detailItem}>
-                            <Feather name="briefcase" size={12} color={Colors.light.textMuted} />
+                            <Feather name="briefcase" size={12} color={Colors.dark.textMuted} />
                             <Text style={styles.detailText}>{profile.occupation}</Text>
                         </View>
                     ) : null}
                     {profile?.website ? (
                         <View style={styles.detailItem}>
-                            <Feather name="link" size={12} color={Colors.light.textMuted} />
-                            <Text style={[styles.detailText, { color: Colors.light.primary }]}>{profile.website}</Text>
+                            <Feather name="link" size={12} color={Colors.dark.textMuted} />
+                            <Text style={[styles.detailText, { color: Colors.dark.primary }]}>{profile.website}</Text>
                         </View>
                     ) : null}
                 </View>
@@ -314,7 +312,7 @@ export default function ProfileScreen() {
                 <View style={styles.statsCard}>
                     <View style={styles.statBox}>
                         <View style={styles.statIconBox}>
-                            <Feather name="grid" size={16} color={Colors.light.primary} />
+                            <Feather name="grid" size={16} color={Colors.dark.primary} />
                         </View>
                         <View>
                             <Text style={styles.statValue}>{posts?.length || 0}</Text>
@@ -357,7 +355,7 @@ export default function ProfileScreen() {
                                     <Image source={{ uri: item.image || 'https://images.unsplash.com/photo-1506744626753-1fa44df31c7f?w=400&q=80' }} style={styles.collectionImage} />
                                     <View style={styles.collectionInfo}>
                                         <View style={styles.collectionTitleRow}>
-                                            <Feather name={item.icon as any || 'folder'} size={12} color={Colors.light.text} />
+                                            <Feather name={item.icon as any || 'folder'} size={12} color={Colors.dark.text} />
                                             <Text style={styles.collectionTitle}>{item.title}</Text>
                                         </View>
                                         <Text style={styles.collectionItems}>{item.items_count} items</Text>
@@ -379,7 +377,7 @@ export default function ProfileScreen() {
                             <Feather 
                                 name={tab === 'Posts' ? 'grid' : tab === 'Saved' ? 'bookmark' : 'heart'} 
                                 size={16} 
-                                color={activeTab === tab ? Colors.light.primary : Colors.light.textMuted} 
+                                color={activeTab === tab ? Colors.dark.primary : Colors.dark.textMuted} 
                             />
                             <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
                                 {tab}
@@ -412,50 +410,49 @@ export default function ProfileScreen() {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
-            </SafeAreaView>
+            <ThemeBackground style={styles.centerContainer}>
+                <ActivityIndicator size="large" color={Colors.dark.primary} />
+            </ThemeBackground>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <StatusBar style="light" />
-            <FlatList
-                data={posts}
-                keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
-                ListHeaderComponent={renderHeader}
-                renderItem={renderPost}
-                numColumns={2}
-                columnWrapperStyle={{ paddingHorizontal: 24 }}
-                contentContainerStyle={styles.postsGrid}
-                showsVerticalScrollIndicator={false}
-                initialNumToRender={6}
-                maxToRenderPerBatch={8}
-                windowSize={5}
-                removeClippedSubviews={Platform.OS === 'android'}
-                onEndReached={fetchMorePosts}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={Colors.light.primary} style={{ marginVertical: 20 }} /> : null}
-                ListEmptyComponent={<Text style={styles.emptyText}>No posts yet.</Text>}
-            />
-        </View>
+        <ThemeBackground>
+            <View style={styles.container}>
+                <StatusBar style="light" />
+                <FlatList
+                    data={posts}
+                    keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+                    ListHeaderComponent={renderHeader}
+                    renderItem={renderPost}
+                    numColumns={2}
+                    columnWrapperStyle={{ paddingHorizontal: 24 }}
+                    contentContainerStyle={styles.postsGrid}
+                    showsVerticalScrollIndicator={false}
+                    initialNumToRender={6}
+                    maxToRenderPerBatch={8}
+                    windowSize={5}
+                    removeClippedSubviews={Platform.OS === 'android'}
+                    onEndReached={fetchMorePosts}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={Colors.dark.primary} style={{ marginVertical: 20 }} /> : null}
+                    ListEmptyComponent={<Text style={styles.emptyText}>No posts yet.</Text>}
+                />
+            </View>
+        </ThemeBackground>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
     },
     centerContainer: {
         flex: 1,
-        backgroundColor: Colors.light.background,
         justifyContent: 'center',
         alignItems: 'center',
     },
     headerContainer: {
-        backgroundColor: Colors.light.background,
     },
     coverImage: {
         width: '100%',
@@ -497,7 +494,7 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         borderWidth: 4,
-        borderColor: Colors.light.background,
+        borderColor: Colors.dark.background,
     },
     verifiedBadge: {
         position: 'absolute',
@@ -508,7 +505,7 @@ const styles = StyleSheet.create({
         height: 20,
         borderRadius: 10,
         borderWidth: 2,
-        borderColor: Colors.light.background,
+        borderColor: Colors.dark.background,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -523,12 +520,12 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 2,
     },
     handle: {
         fontSize: 13,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
     actionButtons: {
         flexDirection: 'row',
@@ -542,25 +539,25 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: Colors.light.border,
+        borderColor: Colors.dark.border,
         gap: 6,
     },
     editButtonText: {
         fontSize: 12,
         fontWeight: '600',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     addUserButton: {
         padding: 6,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: Colors.light.border,
+        borderColor: Colors.dark.border,
         justifyContent: 'center',
         alignItems: 'center',
     },
     bio: {
         fontSize: 14,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         lineHeight: 20,
         marginBottom: 16,
     },
@@ -576,18 +573,18 @@ const styles = StyleSheet.create({
     },
     detailText: {
         fontSize: 12,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
     privacyRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         padding: 12,
         borderRadius: 12,
         marginBottom: 24,
         borderWidth: 1,
-        borderColor: Colors.light.border,
+        borderColor: Colors.dark.border,
     },
     privacyLeft: {
         flexDirection: 'row',
@@ -597,7 +594,7 @@ const styles = StyleSheet.create({
     privacyText: {
         fontSize: 14,
         fontWeight: '500',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     socialRow: {
         flexDirection: 'row',
@@ -615,7 +612,7 @@ const styles = StyleSheet.create({
     },
     statsCard: {
         flexDirection: 'row',
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         paddingVertical: 16,
         paddingHorizontal: 12,
@@ -641,16 +638,16 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     statLabel: {
         fontSize: 11,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
     },
     statDivider: {
         width: 1,
         height: '80%',
-        backgroundColor: Colors.light.border,
+        backgroundColor: Colors.dark.border,
         alignSelf: 'center',
     },
     sectionHeader: {
@@ -662,7 +659,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     seeAllText: {
         fontSize: 12,
@@ -676,11 +673,11 @@ const styles = StyleSheet.create({
     },
     collectionCard: {
         width: 110,
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 12,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: Colors.light.border,
+        borderColor: Colors.dark.border,
     },
     collectionImage: {
         width: '100%',
@@ -698,17 +695,17 @@ const styles = StyleSheet.create({
     collectionTitle: {
         fontSize: 13,
         fontWeight: '600',
-        color: Colors.light.text,
+        color: Colors.dark.text,
     },
     collectionItems: {
         fontSize: 10,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         marginLeft: 18,
     },
     tabsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 20,
         padding: 4,
         marginBottom: 20,
@@ -723,17 +720,17 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     activeTab: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.dark.background,
         boxShadow: '0px 1px 2px #0000001A',
         elevation: 1,
     },
     tabText: {
         fontSize: 13,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         fontWeight: '500',
     },
     activeTabText: {
-        color: Colors.light.primary,
+        color: Colors.dark.primary,
         fontWeight: 'bold',
     },
     postsGrid: {
@@ -797,7 +794,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     emptyText: {
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         textAlign: 'center',
         marginTop: 40,
     },
@@ -815,7 +812,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 40,
         right: 8,
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 12,
         padding: 4,
         zIndex: 20,
@@ -830,7 +827,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     dropdownText: {
-        color: Colors.light.error,
+        color: Colors.dark.error,
         fontSize: 13,
         fontWeight: '600',
     },
@@ -843,7 +840,7 @@ const styles = StyleSheet.create({
     modalContent: {
         width: '85%',
         maxWidth: 400,
-        backgroundColor: Colors.light.surface,
+        backgroundColor: Colors.dark.surface,
         borderRadius: 16,
         padding: 24,
         alignItems: 'center',
@@ -854,7 +851,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: '#fee2e2',
+        backgroundColor: '#451a1a',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
@@ -862,12 +859,12 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.light.text,
+        color: Colors.dark.text,
         marginBottom: 8,
     },
     modalMessage: {
         fontSize: 14,
-        color: Colors.light.textMuted,
+        color: Colors.dark.textMuted,
         textAlign: 'center',
         marginBottom: 24,
         lineHeight: 20,
@@ -881,22 +878,24 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 12,
         borderRadius: 8,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: Colors.dark.background,
         alignItems: 'center',
     },
     modalCancelText: {
-        color: Colors.light.text,
-        fontWeight: '600',
+        color: Colors.dark.text,
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     modalDeleteBtn: {
         flex: 1,
         paddingVertical: 12,
         borderRadius: 8,
-        backgroundColor: Colors.light.error,
+        backgroundColor: Colors.dark.error,
         alignItems: 'center',
     },
     modalDeleteText: {
         color: '#fff',
-        fontWeight: '600',
+        fontWeight: 'bold',
+        fontSize: 16,
     }
 });
